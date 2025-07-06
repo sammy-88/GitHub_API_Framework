@@ -17,3 +17,4 @@ Feature: Check user data
       | builuk     |
       | sammy-88   |
 #  второй тест всегда будет падать
+
