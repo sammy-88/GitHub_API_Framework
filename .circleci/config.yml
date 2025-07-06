@@ -1,0 +1,41 @@
+version: 2.1
+
+executors:
+  python-executor:
+    docker:
+      - image: cimg/python:3.12
+    resource_class: small
+
+jobs:
+  build:
+    executor: python-executor
+    steps:
+      - checkout
+      - run:
+          name: Set PYTHONPATH
+          command: echo 'export PYTHONPATH=$PYTHONPATH:/home/circleci/project' >> $BASH_ENV
+      - run:
+          name: Create .env file
+          command: |
+            echo "GITHUB_TOKEN=${GITHUB_TOKEN}" > .env
+            echo "GITHUB_USERNAME=${GITHUB_USERNAME}" >> .env
+          when: always
+
+      - run:
+          name: Install Python dependencies
+          command: |
+            python -m venv venv
+            . venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt
+
+      - run:
+          name: Run tests
+          command: |
+            behave features/test
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
