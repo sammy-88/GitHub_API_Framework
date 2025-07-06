@@ -39,3 +39,4 @@ workflows:
   build:
     jobs:
       - build
+
