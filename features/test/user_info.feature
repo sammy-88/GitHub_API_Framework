@@ -16,5 +16,5 @@ Feature: Check user data
       | user_login |
       | builuk     |
       | sammy-88   |
-#  второй тест всегда будет падать
+#  один тест всегда будет падать
 
