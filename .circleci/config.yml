@@ -40,4 +40,3 @@ workflows:
   build:
     jobs:
       - build
-
