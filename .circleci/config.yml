@@ -32,6 +32,7 @@ jobs:
       - run:
           name: Run tests
           command: |
+            . venv/bin/activate
             behave features/test
 
 workflows:
