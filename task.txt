@@ -1,0 +1,11 @@
+Create a framework with using GitHub REST API (Python),
+write next test cases - Authorization, getting all repositories,
+getting all branches of repository, getting of pull requests,
+creating of pull request,
+deleting of pull request, approve of pull request.
+
+Создать фреймворк с использованием GitHub REST API (Python),
+написать следующие тестовые случаи - Авторизация, получение всех репозиториев,
+получение всех веток репозитория, получение запросов на извлечение,
+создание запроса на извлечение,
+удаление запроса на извлечение, одобрение запроса на извлечение.

@@ -1,0 +1,7 @@
+Behaviour Driven Design
+
+Gherkin - общее название библиотек в разных языках ( cucumber вероятные названия )
+
+behave - Python реализация Gherkin
+
+pip install --upgrade pip
