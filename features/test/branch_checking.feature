@@ -10,7 +10,7 @@ Feature: Branch checking
     Then I assert repository name is "<repo_name>"
     Given I create commit in repository "<repo_name>"
     When I create new branch with name "<branch_name>" in repository "<repo_name>"
-    Then I should see the branch "<another_branch_name>"
+    Then I should see the branch "<branch_name>"
     Examples:
       | repo_name         | branch_name |
       | new_branch_repo_1 | first       |
