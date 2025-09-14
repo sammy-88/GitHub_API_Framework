@@ -3,6 +3,7 @@ import random
 import requests
 import pytest
 from dotenv import load_dotenv
+import new_pr_approver_helper as pr_helper
 
 load_dotenv()
 BASE_URL = "https://api.github.com"
@@ -37,7 +38,6 @@ def _github_request(token: str, method: str, url: str, **kwargs):
     })
     return requests.request(method, url, headers=headers, timeout=15, **kwargs)
 
-
 @pytest.mark.skipif(
     not APPROVER_TOKEN or not APPROVER_LOGIN,
     reason="Не встановлені облікові дані ревʼювера",
@@ -45,27 +45,17 @@ def _github_request(token: str, method: str, url: str, **kwargs):
 def test_full_collaborator_flow(repo_name):
     """Створити репо → запросити колаборатора → PR → approve → merge"""
     # Repository creation
-    r = _github_request(
-        TOKEN,
-        "POST",
-        f"{BASE_URL}/user/repos",
-        json={"name": repo_name, "auto_init": True, "private": False},
-    )
+    r = pr_helper.repo_creation(repo_name)
     assert r.status_code == 201, f"Не вдалося створити репозиторій: {r.text}"
     repo_data = r.json()
     owner_login = repo_data["owner"]["login"]
     default_branch = repo_data["default_branch"]
 
     # Invite collaborators in repository
-    invite = _github_request(
-        TOKEN,
-        "PUT",
-        f"{BASE_URL}/repos/{owner_login}/{repo_name}/collaborators/{APPROVER_LOGIN}",
-        json={"permission": "push"},
-    )
+    invite = pr_helper.invite_collaborator(owner_login, repo_name, APPROVER_LOGIN)
     assert invite.status_code in (201, 202), f"Invite error: {invite.text}"
 
-    inv_resp = _github_request(APPROVER_TOKEN, "GET", f"{BASE_URL}/user/repository_invitations")
+    inv_resp = pr_helper.check_invitations(APPROVER_TOKEN)
     inv_id = next(
         (
             i["id"]
@@ -75,11 +65,8 @@ def test_full_collaborator_flow(repo_name):
         None,
     )
     assert inv_id, "Не знайдено запрошення"
-    acc_resp = _github_request(
-        APPROVER_TOKEN,
-        "PATCH",
-        f"{BASE_URL}/user/repository_invitations/{inv_id}",
-    )
+
+    acc_resp = pr_helper.check_invitation_id(APPROVER_TOKEN, inv_id)
     assert acc_resp.status_code == 204, f"Не вдалося прийняти запрошення: {acc_resp.text}"
 
     time.sleep(2)
