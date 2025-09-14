@@ -4,7 +4,6 @@ import random
 import requests
 import pytest
 from dotenv import load_dotenv
-
 # Завантаження змінних оточення з файлу .env
 load_dotenv()
 

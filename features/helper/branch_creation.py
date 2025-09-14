@@ -66,9 +66,27 @@ def create_commit_in_new_branch(repo_name, branch_name):
     return new_commit_sha
 #
 # # Перевірка: отримання файлу з нової гілки
-# branch_file_get_url = f"{BASE_URL}/repos/{USER_LOGIN}/{repo_name}/contents/{new_file_path}?ref={branch_name}"
-# file_get_response = requests.get(branch_file_get_url, headers=HEADERS)
-# assert file_get_response.status_code == 200, f"Не вдалося отримати файл з нової гілки. Статус: {file_get_response.status_code}"
-# encoded_content = file_get_response.json()["content"]
-# decoded_content = base64.b64decode(encoded_content).decode("utf-8")
-# assert decoded_content == new_file_content
+    branch_file_get_url = f"{BASE_URL}/repos/{USER_LOGIN}/{repo_name}/contents/{new_file_path}?ref={branch_name}"
+    file_get_response = requests.get(branch_file_get_url, headers=HEADERS)
+    assert file_get_response.status_code == 200, f"Не вдалося отримати файл з нової гілки. Статус: {file_get_response.status_code}"
+    encoded_content = file_get_response.json()["content"]
+    decoded_content = base64.b64decode(encoded_content).decode("utf-8")
+    assert decoded_content == new_file_content
+
+def create_commit_in_branch(repo_name, branch_name):
+    # Крок 4: Коміт у новій гілці - додавання файлу branch_file.txt
+    new_file_path = "branch_file.txt"
+    new_file_content = "This file is added in the new branch."
+    encoded_new_file_content = base64.b64encode(new_file_content.encode("utf-8")).decode("utf-8")
+    new_commit_payload = {
+        "message": "Commit on new branch: Add branch_file.txt",
+        "content": encoded_new_file_content,
+        "branch": branch_name  # вказуємо, що коміт робиться саме в цій гілці
+    }
+    new_commit_url = f"{BASE_URL}/repos/{USER_LOGIN}/{repo_name}/contents/{new_file_path}"
+    new_commit_response = requests.put(new_commit_url, headers=HEADERS, json=new_commit_payload)
+    assert new_commit_response.status_code in (
+        200, 201), f"Коміт у новій гілці не вдалося. Статус: {new_commit_response.status_code}"
+    new_commit_data = new_commit_response.json()
+    new_commit_sha = new_commit_data.get("commit", {}).get("sha")
+    return new_commit_sha

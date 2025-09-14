@@ -1,7 +1,7 @@
 Feature: Pull request checking
   As registered user
   I want check pull request creation in repository branch
-  So I create specific requests to GitHub  API
+  So I create specific requests to GitHub API
 
   Scenario Outline: Create pull request with custom data
     Given I clean up repository by name "<repo_name>"
@@ -11,7 +11,7 @@ Feature: Pull request checking
     Given I create commit in repository "<repo_name>"
     When I create new branch with name "<branch_name>" in repository "<repo_name>"
     Then I should see the branch "<branch_name>"
-    Then I created commit in repository "<repo_name>" with name "<branch_name>"
+    Then I create commit in repository "<repo_name>" with name "<branch_name>"
     When I create new pull request with name "<branch_name>" in repository "<repo_name>" with default branch "master"
     Then I should see new pull request "<branch_name>" with default branch "master"
     Examples:
