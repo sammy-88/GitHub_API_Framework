@@ -1,6 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
+import base64
 
 load_dotenv()
 BASE_URL = "https://api.github.com"
@@ -44,4 +45,30 @@ def check_invitation_id(APPROVER_TOKEN,inv_id):
         APPROVER_TOKEN,
         "PATCH",
         f"{BASE_URL}/user/repository_invitations/{inv_id}",
+    )
+def take_sha_commit_of_main_branch(owner_login, repo_name, default_branch):
+    return _github_request(
+        TOKEN,
+        "GET",
+        f"{BASE_URL}/repos/{owner_login}/{repo_name}/git/ref/heads/{default_branch}",
+    ).json()["object"]["sha"]
+
+def creation_branch_with_name(owner_login, repo_name, branch_name, main_sha):
+    return _github_request(
+        TOKEN,
+        "POST",
+        f"{BASE_URL}/repos/{owner_login}/{repo_name}/git/refs",
+        json={"ref": f"refs/heads/{branch_name}", "sha": main_sha},
+    )
+
+def add_new_file(owner_login, repo_name, branch_name):
+    return _github_request(
+        TOKEN,
+        "PUT",
+        f"{BASE_URL}/repos/{owner_login}/{repo_name}/contents/hello.py",
+        json={
+            "message": "add hello",
+            "content": base64.b64encode(b"print('hello')").decode(),
+            "branch": branch_name,
+        },
     )

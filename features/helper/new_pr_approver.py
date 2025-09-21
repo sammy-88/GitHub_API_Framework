@@ -70,32 +70,15 @@ def test_full_collaborator_flow(repo_name):
     assert acc_resp.status_code == 204, f"Не вдалося прийняти запрошення: {acc_resp.text}"
 
     time.sleep(2)
-
-    main_sha = _github_request(
-        TOKEN,
-        "GET",
-        f"{BASE_URL}/repos/{owner_login}/{repo_name}/git/ref/heads/{default_branch}",
-    ).json()["object"]["sha"]
+    # TAKE SHA COMMIT OF MASTER BRANCH
+    main_sha = pr_helper.take_sha_commit_of_main_branch(owner_login, repo_name, default_branch)
 
     # Creation branch with name "feature"
     branch_name = "feature"
-    _github_request(
-        TOKEN,
-        "POST",
-        f"{BASE_URL}/repos/{owner_login}/{repo_name}/git/refs",
-        json={"ref": f"refs/heads/{branch_name}", "sha": main_sha},
-    )
+    pr_helper.creation_branch_with_name(owner_login, repo_name, branch_name, main_sha)
 
-    _github_request(
-        TOKEN,
-        "PUT",
-        f"{BASE_URL}/repos/{owner_login}/{repo_name}/contents/hello.py",
-        json={
-            "message": "add hello",
-            "content": base64.b64encode(b"print('hello')").decode(),
-            "branch": branch_name,
-        },
-    )
+    # ADD NEW FILE
+    pr_helper.add_new_file(owner_login, repo_name, branch_name)
 
     # Creation pull request
     pr_resp = _github_request(
