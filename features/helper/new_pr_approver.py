@@ -70,6 +70,7 @@ def test_full_collaborator_flow(repo_name):
     assert acc_resp.status_code == 204, f"Не вдалося прийняти запрошення: {acc_resp.text}"
 
     time.sleep(2)
+
     # TAKE SHA COMMIT OF MASTER BRANCH
     main_sha = pr_helper.take_sha_commit_of_main_branch(owner_login, repo_name, default_branch)
 
@@ -80,31 +81,17 @@ def test_full_collaborator_flow(repo_name):
     # ADD NEW FILE
     pr_helper.add_new_file(owner_login, repo_name, branch_name)
 
-    # Creation pull request
-    pr_resp = _github_request(
-        TOKEN,
-        "POST",
-        f"{BASE_URL}/repos/{owner_login}/{repo_name}/pulls",
-        json={"title": "Add hello", "head": branch_name, "base": default_branch},
-    )
+    # CREATION PULL REQUEST
+    pr_resp = pr_helper.creation_pull_request(owner_login, repo_name, branch_name, default_branch)
     assert pr_resp.status_code == 201, f"Не вдалося створити PR: {pr_resp.text}"
     pr_number = pr_resp.json()["number"]
 
-    rev_resp = _github_request(
-        APPROVER_TOKEN,
-        "POST",
-        f"{BASE_URL}/repos/{owner_login}/{repo_name}/pulls/{pr_number}/reviews",
-        json={"event": "APPROVE", "body": "LGTM"},
-    )
+    rev_resp = pr_helper.check_invitations(APPROVER_TOKEN)
     assert rev_resp.status_code == 200, f"Approve failed: {rev_resp.text}"
 
     # Merge pull request
-    merge_resp = _github_request(
-        TOKEN,
-        "PUT",
-        f"{BASE_URL}/repos/{owner_login}/{repo_name}/pulls/{pr_number}/merge",
-        json={"merge_method": "squash"},
-    )
+    merge_method = "squash"
+    merge_resp = pr_helper.merge_pull_request(owner_login, repo_name, pr_number)
     assert merge_resp.status_code == 200, f"Merge failed: {merge_resp.text}"
 
     #clean_up_repos()
