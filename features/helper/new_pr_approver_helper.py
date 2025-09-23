@@ -11,8 +11,8 @@ HEADERS = {
     "Accept": "application/vnd.github.v3+json"
 }
 USER_LOGIN = os.getenv("GITHUB_USERNAME")
-APPROVER_TOKEN = os.getenv("GITHUB_REVIEWER_TOKEN")
-APPROVER_LOGIN = os.getenv("GITHUB_REVIEWER_USERNAME")
+# APPROVER_TOKEN = os.getenv("GITHUB_REVIEWER_TOKEN")
+# APPROVER_LOGIN = os.getenv("GITHUB_REVIEWER_USERNAME")
 
 def _github_request(token: str, method: str, url: str, **kwargs):
     headers = kwargs.pop("headers", {})
@@ -30,6 +30,7 @@ def repo_creation(repo_name):
             f"{BASE_URL}/user/repos",
             json={"name": repo_name, "auto_init": True, "private": False},
         )
+
 def invite_collaborator(owner_login, repo_name, APPROVER_LOGIN):
     return _github_request(
         TOKEN,
@@ -74,7 +75,7 @@ def add_new_file(owner_login, repo_name, branch_name):
             "branch": branch_name,
         },
     )
-def creation_pull_request(owner_login, repo_name, branch_name, default_branch):
+def creation_pull_request(TOKEN, owner_login, repo_name, branch_name, default_branch):
     return _github_request(
         TOKEN,
         "POST",
@@ -82,17 +83,19 @@ def creation_pull_request(owner_login, repo_name, branch_name, default_branch):
         json={"title": "Add hello", "head": branch_name, "base": default_branch},
     )
 
-def review_creation_pull_request(owner_login, repo_name, pr_number):
+def review_creation_pull_request(APPROVER_TOKEN, owner_login, repo_name, pr_number):
     return _github_request(
         APPROVER_TOKEN,
         "POST",
         f"{BASE_URL}/repos/{owner_login}/{repo_name}/pulls/{pr_number}/reviews",
         json={"event": "APPROVE", "body": "LGTM"},
     )
-def merge_pull_request(owner_login, repo_name, pr_number):
+
+def merge_pull_request(TOKEN, owner_login, repo_name, pr_number, merge_method):
         return _github_request(
         TOKEN,
         "PUT",
         f"{BASE_URL}/repos/{owner_login}/{repo_name}/pulls/{pr_number}/merge",
-        json={"merge_method": "squash"},
+        json={"merge_method": merge_method},
     )
+

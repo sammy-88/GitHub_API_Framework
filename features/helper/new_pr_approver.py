@@ -4,6 +4,7 @@ import requests
 import pytest
 from dotenv import load_dotenv
 import new_pr_approver_helper as pr_helper
+import second_pr_approver_helper as second_pr_helper
 
 load_dotenv()
 BASE_URL = "https://api.github.com"
@@ -82,16 +83,17 @@ def test_full_collaborator_flow(repo_name):
     pr_helper.add_new_file(owner_login, repo_name, branch_name)
 
     # CREATION PULL REQUEST
-    pr_resp = pr_helper.creation_pull_request(owner_login, repo_name, branch_name, default_branch)
+    pr_resp = pr_helper.creation_pull_request(TOKEN, owner_login, repo_name, branch_name, default_branch)
     assert pr_resp.status_code == 201, f"Не вдалося створити PR: {pr_resp.text}"
     pr_number = pr_resp.json()["number"]
 
-    rev_resp = pr_helper.check_invitations(APPROVER_TOKEN)
+    # review creation pull request
+    rev_resp = pr_helper.review_creation_pull_request(APPROVER_TOKEN, owner_login, repo_name, pr_number)
     assert rev_resp.status_code == 200, f"Approve failed: {rev_resp.text}"
 
     # Merge pull request
     merge_method = "squash"
-    merge_resp = pr_helper.merge_pull_request(owner_login, repo_name, pr_number)
+    merge_resp = pr_helper.merge_pull_request(TOKEN, owner_login, repo_name, pr_number, merge_method)
     assert merge_resp.status_code == 200, f"Merge failed: {merge_resp.text}"
 
     #clean_up_repos()
@@ -122,23 +124,14 @@ def _github_request(token: str, method: str, url: str, **kwargs):
 def test_full_collaborator_flow_second(repo_name):
     """Створити репо → запросити колаборатора → PR → approve → merge"""
 
-    r = _github_request(
-        TOKEN,
-        "POST",
-        f"{BASE_URL}/user/repos",
-        json={"name": repo_name, "auto_init": True, "private": False},
-    )
+    r =  second_pr_helper.repo_creation(repo_name)
     assert r.status_code == 201, f"Не вдалося створити репозиторій: {r.text}"
     repo_data = r.json()
     owner_login = repo_data["owner"]["login"]
     default_branch = repo_data["default_branch"]
 
-    invite = _github_request(
-        TOKEN,
-        "PUT",
-        f"{BASE_URL}/repos/{owner_login}/{repo_name}/collaborators/{APPROVER_LOGIN}",
-        json={"permission": "push"},
-    )
+    r = pr_helper.repo_creation(repo_name)
+    invite = second_pr_helper.create_invite_request(TOKEN, owner_login, repo_name, APPROVER_LOGIN)
     assert invite.status_code in (201, 202), f"Invite error: {invite.text}"
 
     inv_resp = _github_request(APPROVER_TOKEN, "GET", f"{BASE_URL}/user/repository_invitations")
